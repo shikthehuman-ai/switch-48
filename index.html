@@ -281,33 +281,34 @@
       logo.rotation.x = -Math.PI / 2;
       scene.add(logo);
 
-      // ===== ПОРТЫ ГРУППАМИ ПО 6 + РОВНО ДРУГ ПОД ДРУГОМ =====
-      const portW = 1.22;
+      // ===== ПОРТЫ — ОДИНАКОВЫЕ ГРУППЫ ПО 6 ДЛЯ ОБОИХ РЯДОВ =====
+      const portW = 1.18;
       const portH = 1.0;
       const portD = 1.5;
-      const gap = 0.15;        // между портами внутри группы
-      const groupGap = 0.75;  // между группами
+      const gap = 0.14;
+      const groupGap = 0.70;
 
-      // Считаем общую ширину 4 групп (24 порта)
+      // 4 группы по 6 портов
       const groupWidth = 6 * portW + 5 * gap;
-      const totalPortsWidth = 4 * groupWidth + 3 * groupGap;
-      const startX = -totalPortsWidth / 2 + portW / 2;
+      const totalWidth = 4 * groupWidth + 3 * groupGap;
+      const startX = -totalWidth / 2 + portW / 2;
 
-      for (let i = 0; i < 48; i++) {
-        const row = Math.floor(i / 24);     // 0 или 1
-        const col = i % 24;                 // 0..23
-
-        // Какая группа и позиция внутри группы
+      // Сначала считаем все X-координаты один раз
+      const xPositions = [];
+      for (let col = 0; col < 24; col++) {
         const groupIndex = Math.floor(col / 6);
         const posInGroup = col % 6;
+        const x = startX + groupIndex * (groupWidth + groupGap) + posInGroup * (portW + gap);
+        xPositions.push(x);
+      }
 
-        const x = startX 
-                + groupIndex * (groupWidth + groupGap) 
-                + posInGroup * (portW + gap);
-
+      // Создаём порты
+      for (let i = 0; i < 48; i++) {
+        const row = Math.floor(i / 24);
+        const col = i % 24;
+        const x = xPositions[col];
         const y = row === 0 ? 3.25 : 1.95;
 
-        // Порт
         const pBody = new THREE.Mesh(
           new THREE.BoxGeometry(portW, portH, portD),
           new THREE.MeshStandardMaterial({
@@ -318,13 +319,13 @@
         );
 
         const face = new THREE.Mesh(
-          new THREE.BoxGeometry(portW - 0.18, portH - 0.22, 0.1),
+          new THREE.BoxGeometry(portW - 0.16, portH - 0.2, 0.1),
           new THREE.MeshStandardMaterial({ color: 0x0f172a })
         );
         face.position.z = portD / 2 + 0.02;
 
         const hole = new THREE.Mesh(
-          new THREE.BoxGeometry(portW - 0.4, portH - 0.4, 0.08),
+          new THREE.BoxGeometry(portW - 0.38, portH - 0.38, 0.08),
           new THREE.MeshStandardMaterial({ color: 0x020617 })
         );
         hole.position.z = portD / 2 + 0.06;
@@ -346,7 +347,7 @@
 
         // Светодиод
         const led = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.13, 0.07),
+          new THREE.BoxGeometry(0.18, 0.12, 0.07),
           new THREE.MeshStandardMaterial({
             color: 0x22c55e,
             emissive: 0x166534,
@@ -364,13 +365,13 @@
         c.height = 32;
         const ct = c.getContext('2d');
         ct.fillStyle = '#475569';
-        ct.font = 'bold 17px Arial';
+        ct.font = 'bold 16px Arial';
         ct.textAlign = 'center';
         ct.textBaseline = 'middle';
         ct.fillText(text, 32, 16);
         const t = new THREE.CanvasTexture(c);
         const m = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.75, 0.38),
+          new THREE.PlaneGeometry(0.7, 0.35),
           new THREE.MeshBasicMaterial({ map: t, transparent: true })
         );
         m.position.set(px, py, 9.2);
@@ -380,24 +381,21 @@
       for (let i = 0; i < 48; i++) {
         const row = Math.floor(i / 24);
         const col = i % 24;
-        const groupIndex = Math.floor(col / 6);
-        const posInGroup = col % 6;
-        const x = startX + groupIndex * (groupWidth + groupGap) + posInGroup * (portW + gap);
-
+        const x = xPositions[col];
         if (row === 0) makeNum(String(i + 1), x, 4.0);
         else makeNum(String(i + 1), x, 1.25);
       }
 
-      // SFP
-      const sfpX = 17.6;
+      // SFP — сдвинул правее, чтобы не мешали
+      const sfpX = 18.8;
       for (let i = 0; i < 4; i++) {
         const row = i < 2 ? 0 : 1;
         const col = i % 2;
         const sfp = new THREE.Mesh(
-          new THREE.BoxGeometry(1.4, 1.2, 2.0),
+          new THREE.BoxGeometry(1.35, 1.15, 1.9),
           new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.35, roughness: 0.4 })
         );
-        sfp.position.set(sfpX + col * 1.6, row === 0 ? 3.3 : 2.0, 9.2);
+        sfp.position.set(sfpX + col * 1.55, row === 0 ? 3.3 : 2.0, 9.2);
         scene.add(sfp);
         addEdges(sfp, 0x334155);
       }
