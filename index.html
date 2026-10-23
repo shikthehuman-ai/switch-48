@@ -281,19 +281,20 @@
       logo.rotation.x = -Math.PI / 2;
       scene.add(logo);
 
-      // ===== ПОРТЫ — ОДИНАКОВЫЕ ГРУППЫ ПО 6 ДЛЯ ОБОИХ РЯДОВ =====
-      const portW = 1.18;
+      // ===== ПОРТЫ — СДВИНУТЫ ВЛЕВО =====
+      const portW = 1.20;
       const portH = 1.0;
       const portD = 1.5;
-      const gap = 0.14;
-      const groupGap = 0.70;
+      const gap = 0.15;
+      const groupGap = 0.72;
 
-      // 4 группы по 6 портов
       const groupWidth = 6 * portW + 5 * gap;
       const totalWidth = 4 * groupWidth + 3 * groupGap;
-      const startX = -totalWidth / 2 + portW / 2;
 
-      // Сначала считаем все X-координаты один раз
+      // Сильно сдвинул влево
+      const startX = -20.8;
+
+      // Считаем X один раз
       const xPositions = [];
       for (let col = 0; col < 24; col++) {
         const groupIndex = Math.floor(col / 6);
@@ -302,7 +303,6 @@
         xPositions.push(x);
       }
 
-      // Создаём порты
       for (let i = 0; i < 48; i++) {
         const row = Math.floor(i / 24);
         const col = i % 24;
@@ -386,8 +386,8 @@
         else makeNum(String(i + 1), x, 1.25);
       }
 
-      // SFP — сдвинул правее, чтобы не мешали
-      const sfpX = 18.8;
+      // SFP справа
+      const sfpX = 18.6;
       for (let i = 0; i < 4; i++) {
         const row = i < 2 ? 0 : 1;
         const col = i % 2;
