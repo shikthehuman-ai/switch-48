@@ -281,7 +281,7 @@
       logo.rotation.x = -Math.PI / 2;
       scene.add(logo);
 
-      // ===== ПОРТЫ — СДВИНУТЫ ВЛЕВО =====
+      // ===== ПОРТЫ — СДВИНУТЫ ВПРАВО НА ~2 ПОРТА =====
       const portW = 1.20;
       const portH = 1.0;
       const portD = 1.5;
@@ -291,10 +291,9 @@
       const groupWidth = 6 * portW + 5 * gap;
       const totalWidth = 4 * groupWidth + 3 * groupGap;
 
-      // Сильно сдвинул влево
-      const startX = -20.8;
+      // Сдвинул вправо примерно на 2 порта (≈ 2.7)
+      const startX = -18.1;
 
-      // Считаем X один раз
       const xPositions = [];
       for (let col = 0; col < 24; col++) {
         const groupIndex = Math.floor(col / 6);
@@ -386,8 +385,8 @@
         else makeNum(String(i + 1), x, 1.25);
       }
 
-      // SFP справа
-      const sfpX = 18.6;
+      // SFP
+      const sfpX = 18.8;
       for (let i = 0; i < 4; i++) {
         const row = i < 2 ? 0 : 1;
         const col = i % 2;
