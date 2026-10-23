@@ -79,7 +79,7 @@
     .port-row.active { background: #0ea5e9; color: white; }
     .port-num {
       font-weight: 700;
-      min-width: 26px;
+      min-width: 42px;
       font-size: 13px;
       color: #94a3b8;
     }
@@ -186,6 +186,12 @@
     let mouse = new THREE.Vector2();
     let portNames = JSON.parse(localStorage.getItem('switch48_names') || '{}');
 
+    // Дефолтные названия для SFP
+    if (!portNames['sfp1']) portNames['sfp1'] = '1.SFP';
+    if (!portNames['sfp2']) portNames['sfp2'] = '2.SFP';
+    if (!portNames['sfp3']) portNames['sfp3'] = '3.SFP';
+    if (!portNames['sfp4']) portNames['sfp4'] = '4.SFP';
+
     init();
     buildPortsList();
     animate();
@@ -235,7 +241,6 @@
     }
 
     function createSwitch() {
-      // Корпус
       const bodyMat = new THREE.MeshStandardMaterial({
         color: 0xe2e8f0,
         metalness: 0.06,
@@ -281,7 +286,7 @@
       logo.rotation.x = -Math.PI / 2;
       scene.add(logo);
 
-      // ===== ПОРТЫ =====
+      // ===== RJ45 ПОРТЫ =====
       const portW = 1.20;
       const portH = 1.0;
       const portD = 1.5;
@@ -289,8 +294,6 @@
       const groupGap = 0.72;
 
       const groupWidth = 6 * portW + 5 * gap;
-      const totalWidth = 4 * groupWidth + 3 * groupGap;
-
       const startX = -18.1;
 
       const xPositions = [];
@@ -305,8 +308,6 @@
         const row = Math.floor(i / 24);
         const col = i % 24;
         const x = xPositions[col];
-
-        // Верхний ряд как был, нижний опущен на половину высоты порта (0.5)
         const y = row === 0 ? 3.25 : 1.45;
 
         const pBody = new THREE.Mesh(
@@ -339,7 +340,8 @@
         port.userData = {
           id: i + 1,
           originalColor: 0x1e293b,
-          meshes: [pBody, face]
+          meshes: [pBody, face],
+          isSfp: false
         };
 
         scene.add(port);
@@ -358,7 +360,7 @@
         scene.add(led);
       }
 
-      // Номера
+      // Номера RJ45
       function makeNum(text, px, py) {
         const c = document.createElement('canvas');
         c.width = 64;
@@ -386,18 +388,42 @@
         else makeNum(String(i + 1), x, 0.75);
       }
 
-      // SFP
+      // ===== SFP МОДУЛИ (кликабельные) =====
       const sfpX = 18.8;
       for (let i = 0; i < 4; i++) {
         const row = i < 2 ? 0 : 1;
         const col = i % 2;
-        const sfp = new THREE.Mesh(
+        const y = row === 0 ? 3.3 : 1.5;
+
+        const sfpBody = new THREE.Mesh(
           new THREE.BoxGeometry(1.35, 1.15, 1.9),
           new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.35, roughness: 0.4 })
         );
-        sfp.position.set(sfpX + col * 1.55, row === 0 ? 3.3 : 1.5, 9.2);
+
+        const sfpFace = new THREE.Mesh(
+          new THREE.BoxGeometry(1.2, 1.0, 0.1),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a })
+        );
+        sfpFace.position.z = 1.0;
+
+        const sfp = new THREE.Group();
+        sfp.add(sfpBody);
+        sfp.add(sfpFace);
+        sfp.position.set(sfpX + col * 1.55, y, 9.2);
+
+        const sfpId = 'sfp' + (i + 1);
+
+        sfp.userData = {
+          id: sfpId,
+          originalColor: 0x1e293b,
+          meshes: [sfpBody, sfpFace],
+          isSfp: true,
+          label: 'SFP ' + (i + 1)
+        };
+
         scene.add(sfp);
-        addEdges(sfp, 0x334155);
+        ports.push(sfp);
+        addEdges(sfpBody, 0x334155);
       }
 
       // Боковые
@@ -413,6 +439,8 @@
     function buildPortsList() {
       const list = document.getElementById('ports-list');
       list.innerHTML = '';
+
+      // Сначала 1-48
       for (let i = 1; i <= 48; i++) {
         const row = document.createElement('div');
         row.className = 'port-row';
@@ -425,6 +453,21 @@
         row.addEventListener('click', () => highlightPort(i));
         list.appendChild(row);
       }
+
+      // Потом SFP
+      for (let i = 1; i <= 4; i++) {
+        const id = 'sfp' + i;
+        const row = document.createElement('div');
+        row.className = 'port-row';
+        row.dataset.id = id;
+        const name = portNames[id] || (i + '.SFP');
+        row.innerHTML = `
+          <span class="port-num">SFP ${i}</span>
+          <span class="port-name">${name}</span>
+        `;
+        row.addEventListener('click', () => highlightPort(id));
+        list.appendChild(row);
+      }
     }
 
     function highlightPort(id) {
@@ -434,7 +477,7 @@
       });
       document.querySelectorAll('.port-row').forEach(r => r.classList.remove('active'));
 
-      const port = ports.find(p => p.userData.id === id);
+      const port = ports.find(p => p.userData.id == id);
       if (port) {
         port.userData.meshes.forEach(m => m.material.color.setHex(0x0ea5e9));
         port.scale.set(1.12, 1.12, 1.2);
@@ -466,8 +509,10 @@
 
     function openModal(id) {
       currentPortId = id;
-      document.getElementById('modal-title').textContent = `Порт ${id}`;
-      document.getElementById('port-name').value = portNames[id] || '';
+      const isSfp = String(id).startsWith('sfp');
+      const title = isSfp ? ('SFP ' + id.replace('sfp', '')) : ('Порт ' + id);
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('port-name').value = portNames[id] || (isSfp ? (id.replace('sfp','') + '.SFP') : '');
       document.getElementById('modal').classList.add('show');
       setTimeout(() => document.getElementById('port-name').focus(), 80);
     }
