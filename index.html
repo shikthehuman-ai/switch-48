@@ -306,8 +306,8 @@
         const col = i % 24;
         const x = xPositions[col];
 
-        // Верхний ряд как был, нижний опущен на половину высоты порта (0.5)
-        const y = row === 0 ? 3.25 : 1.45;
+        // Нижний ряд поднят на толщину лампочки (~0.12)
+        const y = row === 0 ? 3.25 : 1.57;
 
         const pBody = new THREE.Mesh(
           new THREE.BoxGeometry(portW, portH, portD),
@@ -383,7 +383,7 @@
         const col = i % 24;
         const x = xPositions[col];
         if (row === 0) makeNum(String(i + 1), x, 4.0);
-        else makeNum(String(i + 1), x, 0.75);
+        else makeNum(String(i + 1), x, 0.87);
       }
 
       // SFP
@@ -395,7 +395,7 @@
           new THREE.BoxGeometry(1.35, 1.15, 1.9),
           new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.35, roughness: 0.4 })
         );
-        sfp.position.set(sfpX + col * 1.55, row === 0 ? 3.3 : 1.5, 9.2);
+        sfp.position.set(sfpX + col * 1.55, row === 0 ? 3.3 : 1.62, 9.2);
         scene.add(sfp);
         addEdges(sfp, 0x334155);
       }
